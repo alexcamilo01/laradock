@@ -1,0 +1,40 @@
+server {
+    listen 80;
+    server_name localhost;
+
+    # Define o root geral como geladinhos/public
+    root /var/www/geladinhos/public;
+	
+    # Frontend (Vite/Vue) - Tudo que não é /api/
+    location / {
+        root /var/www/geladinhos/public/app;
+        try_files $uri $uri/ /index.html;
+        access_log /var/log/nginx/geladinhos_access.log;
+        error_log /var/log/nginx/geladinhos_error.log;
+    }	
+
+    # API (Laravel) - Todas as requisições /api/
+	location /api/ {
+		root /var/www/geladinhos/public;
+		try_files $uri $uri/ /index.php?$query_string;
+	}
+	
+	location ~ \.php$ {
+			include fastcgi_params;
+			fastcgi_pass php-fpm:9000;
+			fastcgi_index index.php;
+			fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;			
+			access_log /var/log/nginx/api_access.log;
+			error_log /var/log/nginx/api_error.log debug;
+	}
+
+
+    # Bloqueia arquivos sensíveis
+    location ~ /\.ht {
+        deny all;
+    }
+
+    # Logs gerais
+    access_log /var/log/nginx/geladinhos_access.log;
+    error_log /var/log/nginx/geladinhos_error.log;
+}
